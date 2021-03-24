@@ -1,0 +1,54 @@
+config:
+  target: "https://api.todoist.com/rest/v1"
+  phases:
+    - duration: 10
+      arrivalRate: 1
+      name: "Warmp Up"
+    - duration: 1
+      arrivalRate: 10
+      name: "Spike"
+    - duration: 10
+      arrivalRate: 5
+      name: "Heavy Spike"
+    - duration: 60
+      arrivalRate: 1
+      name: "Prolongued load"
+    - duration: 10
+      arrivalRate: 1
+      name: "Calm before the storm"
+    - duration: 120
+      arrivalRate: 15
+      name: "Storm"
+  defaults:
+    headers:
+      Authorization: Bearer {{ $processEnvironment.TOKEN }}
+      Content-type: application/json
+  processor: "./mockData.js"
+scenarios:
+  - flow:
+    - function: "generateRandomData"
+    - get:
+        url: "/tasks"
+    - post:
+        url: "/tasks"
+        json:
+          content: "{{ taskName }}"
+        capture:
+          json: "$.id"
+          as: "id"
+    - log: "Current id is {{ id }}"
+    - get:
+        url: "/tasks/{{ id }}"
+    - post:
+        url: "/tasks/{{ id }}"
+        json:
+          content: "{{ taskName }}"
+    - post:
+        url: "/tasks/{{ id }}/close"
+    - post:
+        url: "/tasks/{{ id }}/reopen"
+    - delete:
+        url: "/tasks/{{ id }}"
+            
+  # For more information: https://artillery.io/docs/script-reference/
+# For more information: https://artillery.io/docs/script-reference/
